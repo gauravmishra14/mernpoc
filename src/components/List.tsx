@@ -3,13 +3,14 @@ import "../App.css";
 import { IListState } from "../utils/InterfacePools";
 import Radio from "./common/Radio";
 import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
-import { getWeatherDetails } from "../actions/ActionCreator";
-import axios from "axios";
-import {baseUrl, queryParamForCity} from '../utils/Apis'
+import { getWeatherDetail, weatherDetail, hitApi, resetWeatherDetail } from "../actions/ActionCreator";
+import axios from 'axios';
+import store from "../store";
 
 const dispatchMapToProps = (dispatch: any) => {
-  return {};
+  return {
+    getWeatherDetail: (a: string) => dispatch(getWeatherDetail(a))
+  };
 };
 
 class List extends Component<{}, IListState> {
@@ -20,22 +21,29 @@ class List extends Component<{}, IListState> {
   private handleOptionChange = (e: any) => {
     this.setState({
       selectedOption: e.target.value,
-      submitHasError: false,
+      submitHasError: false
     });
   };
-  private callCityDetailsApi = (city: string) => {
-    axios.get(baseUrl+queryParamForCity+city).then(Response => console.log(Response))
-  }
+  handleApiCall = (a: string) => {
+    const url = "http://localhost:5000/city?city=" + a;
+    store.dispatch(hitApi());
+    store.dispatch(resetWeatherDetail());
+    axios
+      .get(url)
+      .then(res => {
+        console.log(res.data[0])
+        const app = res.data[0];
+        store.dispatch(weatherDetail(app))
+      })
+      .catch(err => console.log(err));
+  };
   private handleSubmit = () => {
-    let a = this.state.selectedOption;
-    if (a) {
+    let selectedCity = this.state.selectedOption;
+    if (selectedCity) {
       this.setState({ submitHasError: false });
-
-      console.log(`selected city is ${a}`);
-      this.callCityDetailsApi(a)
+      this.handleApiCall(selectedCity);
     } else {
       this.setState({ submitHasError: true });
-      console.log(`please select a city`);
     }
   };
   render() {
@@ -43,9 +51,6 @@ class List extends Component<{}, IListState> {
     return (
       <div className="list_wrapper">
         <p>Select a City and click submit button to get weather details</p>
-        {/* <Radio value='sunnyvale' label='sunnyvale' name="country" changed={this.handleOptionChange}/>
-          <Radio value='chicago' label='chicago' name="country"/>
-          <Radio value='dallas' label='dallas' name="country"/> */}
         <form className="city_form">
           <div className="radio">
             <label>

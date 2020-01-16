@@ -64,7 +64,7 @@ export interface IForecast {
 export interface IWeather {
   location?: ILocation | {},
   current_observation?: ICurrentObservation | {},
-  forecast?: IForecast[] | [],
+  forecasts?: IForecast[] | [],
 }
 
 export interface ICityDetailProps {
@@ -73,5 +73,5 @@ export interface ICityDetailProps {
 
 export interface IAction {
   type: string,
-  payload: Object,
+  payload?: Object,
 }
